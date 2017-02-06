@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-__author__ = 'Maciej Kamiński Politechnika Wrocławska'
-
 ###################################################
 # by Maciej Kamiński Politechnika Wrocławska
 # Under GPL 3 and  MIT licence
 #
+__author__ = 'Maciej Kamiński Politechnika Wrocławska'
 
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
@@ -15,12 +14,16 @@ import sys
 import numpy as np
 
 
-maxx=float(sys.argv[1])
-maxy=float(sys.argv[2])
-xfs=float(sys.argv[3])
-yfs=float(sys.argv[4])
-filename=str(sys.argv[5])
-output=str(sys.argv[6])
+parser=argparse.ArgumentParser(description="Helps determine point coordinates in scanned chart")
+parser.add_argument('-xfs','--x_figure_size', type=int, help='Window width in inches',default=12)
+parser.add_argument('-yfs','--y_figure_size', type=int, help='Window height in inches',default=9)
+parser.add_argument('maxx', type=int, help='Max X point - (0,X) coordinated')
+parser.add_argument('maxy', type=int, help='Max Y point - (Y,0) coordinated')
+parser.add_argument('input', type=str, help='Input image filename')
+parser.add_argument('output', type=str, help='Output CSV filename')
+
+args=parser.parse_args()
+
 
 def onkey(event):
     if event.key!=' ':
@@ -50,7 +53,7 @@ def onkey(event):
         event.canvas.figure.suptitle("Select Next Point", fontsize=14, fontweight='bold')
         points.append((event.xdata, event.ydata))
         event.canvas.draw()
-        with open(output,"a") as file:
+        with open(args.output,"a") as file:
             zero=complex(*point_zero)
             xmax=complex(*point_xmax)
             ymax=complex(*point_ymax)
@@ -58,8 +61,8 @@ def onkey(event):
             x=xmax-zero
             y=ymax-zero
             p=point-zero
-            xversor=x/maxx
-            yversor=y/maxy
+            xversor=x/args.maxx
+            yversor=y/args.maxy
             a=np.array([
                 [xversor.real,yversor.real],
                 [xversor.imag,yversor.imag]
@@ -84,14 +87,12 @@ def main():
     point_ymax=None
     points=[]
 
-    try:
-        image=mpimg.imread(filename)
-    except:
-        image=[[[1.0,1.0,1.0]]]
+    image=mpimg.imread(args.input)
+
 
     #x=[(t-0.0)/10.0 for t in range(steps*10)]
 
-    fig, ax = plt.subplots(figsize=(12,8))
+    fig, ax = plt.subplots(figsize=(args.x_figure_size,args.y_figure_size))
 
     #f=lambda s: convolution_mix(s,selectivity,conv_a,conv_b,alpha)
 
