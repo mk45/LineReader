@@ -1,7 +1,8 @@
 # LineReader
 
 Tool works under python3
-Help people read charts
+
+Helps determine point coordinates in scanned chart.
 
 Usage Example:
 
