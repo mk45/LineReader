@@ -34,17 +34,17 @@ def onclick(event):
         event.canvas.figure.suptitle("Select X max Point", fontsize=14, fontweight='bold')
         point_zero=(event.xdata, event.ydata)
         event.canvas.draw()
-        print(point_zero)
+
     elif not point_xmax:
         event.canvas.figure.suptitle("Select Y max Point", fontsize=14, fontweight='bold')
         point_xmax=(event.xdata, event.ydata)
         event.canvas.draw()
-        print(point_xmax)
+
     elif not point_ymax:
         event.canvas.figure.suptitle("Select First Point", fontsize=14, fontweight='bold')
         point_ymax=(event.xdata, event.ydata)
         event.canvas.draw()
-        print(point_ymax)
+
     else:
         event.canvas.figure.suptitle("Select Next Point", fontsize=14, fontweight='bold')
         points.append((event.xdata, event.ydata))
@@ -64,13 +64,12 @@ def onclick(event):
                 [xversor.imag,yversor.imag]
             ])
             b=np.array([p.real,p.imag])
-            #np.transpose(a)
+
             h=np.linalg.solve(a,b)
             print(h)
-            print("{:.2f},{:.2f}".format(round(h[0],2),round(h[1],2)),file=file)
-            #print("",file=file)
+            print("{:.2f}, {:.2f}".format(round(h[0],2),round(h[1],2)),file=file)
 
-def zoom_fun(event):
+def onZoom(event):
     # get the current x and y limits
     base_scale=1.8
     global ax
@@ -85,7 +84,6 @@ def zoom_fun(event):
     y_d=ydata-cur_ylim[0]
     y_u=cur_ylim[1]-ydata
 
-    #assert all(map(lambda x:x>0,[x_l,x_r,y_d,y_u]))
 
     if event.button == 'up':
         # deal with zoom in
@@ -134,7 +132,7 @@ def zoom_fun(event):
     ax.set_ylim([new_min_y_limit,new_max_y_limit])
     plt.draw() # force re-draw
 
-#pdb.set_trace()
+
 def main():
     global point_zero
     global point_xmax
@@ -150,7 +148,7 @@ def main():
     fig, ax = plt.subplots(figsize=(args.x_figure_size,args.y_figure_size))
     fig.suptitle("Select zero point", fontsize=14, fontweight='bold')
     fig.canvas.mpl_connect('button_press_event', onclick)
-    fig.canvas.mpl_connect('scroll_event',zoom_fun)
+    fig.canvas.mpl_connect('scroll_event',onZoom)
     plt.imshow(image,zorder=0,extent=[0.0,1.0,0.0,1.0],aspect='auto')
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
