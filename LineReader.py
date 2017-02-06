@@ -14,7 +14,7 @@ import numpy as np
 
 parser=argparse.ArgumentParser(description="Helps determine point coordinates in scanned chart")
 parser.add_argument('-xfs','--x_figure_size', type=int, help='Window width in inches',default=12)
-parser.add_argument('-yfs','--y_figure_size', type=int, help='Window height in inches',default=9)
+parser.add_argument('-yfs','--y_figure_size', type=int, help='Window height in inches',default=8)
 parser.add_argument('maxx', type=int, help='Max X point - (0,X) coordinated')
 parser.add_argument('maxy', type=int, help='Max Y point - (Y,0) coordinated')
 parser.add_argument('input', type=str, help='Input image filename')
@@ -23,11 +23,8 @@ parser.add_argument('output', type=str, help='Output CSV filename')
 args=parser.parse_args()
 
 
-def onkey(event):
-    print(dir(event.canvas))
+def onclick(event):
 
-    if event.key!=' ':
-        return
     global point_zero
     global point_xmax
     global point_ymax
@@ -75,15 +72,21 @@ def onkey(event):
 
 def zoom_fun(event):
     # get the current x and y limits
-    base_scale=1.5
+    base_scale=1.8
     global ax
     cur_xlim = ax.get_xlim()
     cur_ylim = ax.get_ylim()
     # get middle
-    cur_xrange = (cur_xlim[1] - cur_xlim[0])*0.5
-    cur_yrange = (cur_ylim[1] - cur_ylim[0])*0.5
     xdata = event.xdata # get event x location
     ydata = event.ydata # get event y location
+
+    x_l=xdata-cur_xlim[0]
+    x_r=cur_xlim[1]-xdata
+    y_d=ydata-cur_ylim[0]
+    y_u=cur_ylim[1]-ydata
+
+    #assert all(map(lambda x:x>0,[x_l,x_r,y_d,y_u]))
+
     if event.button == 'up':
         # deal with zoom in
         scale_factor = 1/base_scale
@@ -95,16 +98,37 @@ def zoom_fun(event):
         scale_factor = 1
         print(event.button)
     # set new limits
-    new_min_x_limit=xdata - cur_xrange*scale_factor
-    new_max_x_limit=xdata + cur_xrange*scale_factor
-    new_min_y_limit=ydata - cur_yrange*scale_factor
-    new_max_y_limit=ydata + cur_yrange*scale_factor
+    x_l*=scale_factor
+    x_r*=scale_factor
+    y_d*=scale_factor
+    y_u*=scale_factor
 
-    new_min_x_limit = new_min_x_limit if new_min_x_limit>0 else 0
-    new_max_x_limit = new_max_x_limit if new_max_x_limit<1 else 1
-    new_min_y_limit = new_min_y_limit if new_min_y_limit>0 else 0
-    new_max_y_limit = new_max_y_limit if new_max_y_limit<1 else 1
+    new_min_x_limit=xdata - x_l
+    new_max_x_limit=xdata + x_r
+    new_min_y_limit=ydata - y_d
+    new_max_y_limit=ydata + y_u
 
+    if x_l+x_r>1 or y_u+y_d>1:
+        new_min_x_limit=0
+        new_max_x_limit=1
+        new_min_y_limit=0
+        new_max_y_limit=1
+
+    if new_min_x_limit<=0:
+        new_max_x_limit+=(0-new_min_x_limit)
+        new_min_x_limit=0
+
+    if new_max_x_limit>=1:
+        new_min_x_limit-=(new_max_x_limit-1)
+        new_max_x_limit=1
+
+    if new_min_y_limit<=0:
+        new_max_y_limit+=(0-new_min_y_limit)
+        new_min_y_limit=0
+
+    if new_max_y_limit>=1:
+        new_min_y_limit-=(new_max_y_limit-1)
+        new_max_y_limit=1
 
     ax.set_xlim([new_min_x_limit,new_max_x_limit])
     ax.set_ylim([new_min_y_limit,new_max_y_limit])
@@ -125,7 +149,7 @@ def main():
     image=mpimg.imread(args.input)
     fig, ax = plt.subplots(figsize=(args.x_figure_size,args.y_figure_size))
     fig.suptitle("Select zero point", fontsize=14, fontweight='bold')
-    fig.canvas.mpl_connect('key_press_event', onkey)
+    fig.canvas.mpl_connect('button_press_event', onclick)
     fig.canvas.mpl_connect('scroll_event',zoom_fun)
     plt.imshow(image,zorder=0,extent=[0.0,1.0,0.0,1.0],aspect='auto')
     ax.xaxis.set_visible(False)
