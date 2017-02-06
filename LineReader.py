@@ -9,8 +9,6 @@ __author__ = 'Maciej Kamiński Politechnika Wrocławska'
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import argparse
-import sys
-#import pdb
 import numpy as np
 
 
@@ -26,7 +24,7 @@ args=parser.parse_args()
 
 
 def onkey(event):
-    print(dir(event))
+    print(dir(event.canvas))
 
     if event.key!=' ':
         return
@@ -77,13 +75,13 @@ def onkey(event):
 
 def zoom_fun(event):
     # get the current x and y limits
-    base_scale=2
-    ax=event.canvas.axis
-
+    base_scale=1.5
+    global ax
     cur_xlim = ax.get_xlim()
     cur_ylim = ax.get_ylim()
-    cur_xrange = (cur_xlim[1] - cur_xlim[0])*.5
-    cur_yrange = (cur_ylim[1] - cur_ylim[0])*.5
+    # get middle
+    cur_xrange = (cur_xlim[1] - cur_xlim[0])*0.5
+    cur_yrange = (cur_ylim[1] - cur_ylim[0])*0.5
     xdata = event.xdata # get event x location
     ydata = event.ydata # get event y location
     if event.button == 'up':
@@ -95,12 +93,21 @@ def zoom_fun(event):
     else:
         # deal with something that should never happen
         scale_factor = 1
-        print event.button
+        print(event.button)
     # set new limits
-    ax.set_xlim([xdata - cur_xrange*scale_factor,
-                 xdata + cur_xrange*scale_factor])
-    ax.set_ylim([ydata - cur_yrange*scale_factor,
-                 ydata + cur_yrange*scale_factor])
+    new_min_x_limit=xdata - cur_xrange*scale_factor
+    new_max_x_limit=xdata + cur_xrange*scale_factor
+    new_min_y_limit=ydata - cur_yrange*scale_factor
+    new_max_y_limit=ydata + cur_yrange*scale_factor
+
+    new_min_x_limit = new_min_x_limit if new_min_x_limit>0 else 0
+    new_max_x_limit = new_max_x_limit if new_max_x_limit<1 else 1
+    new_min_y_limit = new_min_y_limit if new_min_y_limit>0 else 0
+    new_max_y_limit = new_max_y_limit if new_max_y_limit<1 else 1
+
+
+    ax.set_xlim([new_min_x_limit,new_max_x_limit])
+    ax.set_ylim([new_min_y_limit,new_max_y_limit])
     plt.draw() # force re-draw
 
 #pdb.set_trace()
@@ -109,6 +116,7 @@ def main():
     global point_xmax
     global point_ymax
     global points
+    global ax
 
     point_zero=None
     point_xmax=None
