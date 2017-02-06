@@ -24,4 +24,5 @@ because click is used for zoom and navigation.
 Program opens window where one chooses (0,0) point than 
 X Max point (XMAX,0) , as specified in commmand line,
 Y Max point (0,YMAX), as specified in commmand line, 
-Every other point will be saved (appended!) to output (CSV format) 
+every other point selected will be decoded in this coordinates and 
+saved (appended!) to output (CSV format) 
