@@ -26,14 +26,15 @@ args=parser.parse_args()
 
 
 def onkey(event):
+    print(dir(event))
+
     if event.key!=' ':
         return
     global point_zero
     global point_xmax
     global point_ymax
     global points
-    #p='button=%d, x=%d, y=%d, xdata=%f, ydata=%f'%(event.button, event.x, event.y, event.xdata, event.ydata)
-    #print(dir(event.canvas.figure))#.suptitle(p, fontsize=14, fontweight='bold')
+
     if not point_zero:
         event.canvas.figure.suptitle("Select X max Point", fontsize=14, fontweight='bold')
         point_zero=(event.xdata, event.ydata)
@@ -74,6 +75,33 @@ def onkey(event):
             print("{:.2f},{:.2f}".format(round(h[0],2),round(h[1],2)),file=file)
             #print("",file=file)
 
+def zoom_fun(event):
+    # get the current x and y limits
+    base_scale=2
+    ax=event.canvas.axis
+
+    cur_xlim = ax.get_xlim()
+    cur_ylim = ax.get_ylim()
+    cur_xrange = (cur_xlim[1] - cur_xlim[0])*.5
+    cur_yrange = (cur_ylim[1] - cur_ylim[0])*.5
+    xdata = event.xdata # get event x location
+    ydata = event.ydata # get event y location
+    if event.button == 'up':
+        # deal with zoom in
+        scale_factor = 1/base_scale
+    elif event.button == 'down':
+        # deal with zoom out
+        scale_factor = base_scale
+    else:
+        # deal with something that should never happen
+        scale_factor = 1
+        print event.button
+    # set new limits
+    ax.set_xlim([xdata - cur_xrange*scale_factor,
+                 xdata + cur_xrange*scale_factor])
+    ax.set_ylim([ydata - cur_yrange*scale_factor,
+                 ydata + cur_yrange*scale_factor])
+    plt.draw() # force re-draw
 
 #pdb.set_trace()
 def main():
@@ -86,24 +114,12 @@ def main():
     point_xmax=None
     point_ymax=None
     points=[]
-
     image=mpimg.imread(args.input)
-
-
-    #x=[(t-0.0)/10.0 for t in range(steps*10)]
-
     fig, ax = plt.subplots(figsize=(args.x_figure_size,args.y_figure_size))
-
-    #f=lambda s: convolution_mix(s,selectivity,conv_a,conv_b,alpha)
-
-    #plt.plot([0],[0],zorder=1)
     fig.suptitle("Select zero point", fontsize=14, fontweight='bold')
-
-    cid = fig.canvas.mpl_connect('key_press_event', onkey)
-
+    fig.canvas.mpl_connect('key_press_event', onkey)
+    fig.canvas.mpl_connect('scroll_event',zoom_fun)
     plt.imshow(image,zorder=0,extent=[0.0,1.0,0.0,1.0],aspect='auto')
-
-    #fig=plt.figure(figsize=(10,10))
     ax.xaxis.set_visible(False)
     ax.yaxis.set_visible(False)
     plt.tight_layout(pad=0)
